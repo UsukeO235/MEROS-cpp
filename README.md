@@ -1,15 +1,15 @@
 # MEROS++
 Minimal Embedded Real-time OS written in C++
 
-# Features
+## Features
 - C++ interface
 - Static memory allocation: Stack area of each task is statically allocated
 - Easy to port: Few knowledge of Assembly language required
 
-# Requirements
+## Requirements
 - Compiler: arm-none-eabi-gcc, arm-none-eabi-g++ 4.9.3
 
-# How to port MEROS++ into your project
+## How to port MEROS++ into your project
 1. Modify 4 functions in merospp_port.hpp
     - disable_interrupt()
     - enable_interrupt()
@@ -80,5 +80,5 @@ Minimal Embedded Real-time OS written in C++
     
     Please refer to CMakeLists_sample.txt for recommended compile options.
 
-# Acknowledgments
+## Acknowledgments
 - [CMake example project for STM32 and CubeMX](https://github.com/idt12312/STM32_CMake)
