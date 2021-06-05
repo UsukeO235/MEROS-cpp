@@ -1,0 +1,81 @@
+# http://idken.net/posts/2019-01-26-stm32_cmake/
+cmake_minimum_required( VERSION 3.5 )
+
+set( CMAKE_C_COMPILER arm-none-eabi-gcc )
+set( CMAKE_CXX_COMPILER arm-none-eabi-g++ )
+set( CMAKE_EXE_LINKER arm-none-eabi-g++ )
+set( CMAKE_C_FLAGS "-O2 -ffunction-sections -fdata-sections -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard\
+	-DUSE_HAL_DRIVER -DSTM32F303x8 -g"
+)
+set( CMAKE_CXX_FLAGS "-std=c++14 -O2 -ffunction-sections -fdata-sections -fno-exceptions -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard\
+	-DUSE_HAL_DRIVER -DSTM32F303x8 -fno-threadsafe-statics -g"
+)
+set( CMAKE_AS_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp" )
+set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -L ${CMAKE_SOURCE_DIR} -T STM32F303K8Tx_FLASH.ld \
+	-lc -lm --specs=nosys.specs -Xlinker --gc-sections -Wl,-Map=${CMAKE_PROJECT_NAME}.map"
+)
+
+enable_language( ASM )
+
+project( myrtos )
+
+include_directories(
+	/usr/lib/arm-none-eabi/include
+	/usr/lib/arm-none-eabi/include/c++/4.9.3
+	Inc
+	Drivers/STM32F3xx_HAL_Driver/Inc
+#	Drivers/STM32F3xx_HAL_Driver/Inc/Legacy
+	Drivers/CMSIS/Device/ST/STM32F3xx/Include
+	Drivers/CMSIS/Include
+	Drivers/CMSIS/DSP/Include
+    
+    merospp
+)
+
+link_directories(
+	${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Lib/GCC
+)
+
+# HALまわりのライブラリ
+add_library( hal_driver STATIC
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim_ex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc_ex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_flash.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_flash_ex.c
+#	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_flash_ramfunc.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_gpio.c
+#	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_dma_ex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_dma.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr_ex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_cortex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart_ex.c
+	Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal.c
+)
+
+add_executable(
+	${CMAKE_PROJECT_NAME}.elf
+    Src/stm32f3xx_hal_msp.c
+	Src/stm32f3xx_it.c
+	Src/system_stm32f3xx.c
+	Src/main.cpp
+	startup_stm32f303x8.s
+)
+
+target_link_libraries( ${CMAKE_PROJECT_NAME}.elf
+	libarm_cortexM4lf_math.a
+    hal_driver
+)
+
+# elfからbinを生成
+add_custom_command( TARGET ${CMAKE_PROJECT_NAME}.elf POST_BUILD
+	COMMAND ${CMAKE_OBJCOPY} ARGS -O binary ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin
+)
+
+# リソースの使用量
+add_custom_command( TARGET ${CMAKE_PROJECT_NAME}.elf POST_BUILD 
+	COMMAND arm-none-eabi-size --format=berkeley "${CMAKE_PROJECT_NAME}.elf"
+)
