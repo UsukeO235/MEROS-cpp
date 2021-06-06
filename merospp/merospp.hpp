@@ -58,8 +58,6 @@ class Scheduler
     
     static_assert( total_stack_size(StackSize...) <= MAXIMUM_TOTAL_STACK_SIZE, "Total stack size exceeds MAXIMUM_TOTAL_STACK_SIZE" );
 
-    const std::size_t N_;
-    
     volatile std::size_t current_task_number_ = 0;
     std::array< Task*, sizeof...(StackSize) > task_ptrs_;
     std::array< bool, sizeof...(StackSize)+1 > tasks_initialized_;
@@ -90,8 +88,7 @@ class Scheduler
 
     template< typename... T >
     Scheduler( T&... args )
-    : N_( sizeof...(StackSize) )
-    , task_ptrs_( make_array_of_pointers(args...) )
+    : task_ptrs_( make_array_of_pointers(args...) )
     {
         //static_assert( 1 <= sizeof...(T) && sizeof...(T) <= 32, "N must be between 1 and 32" );
         //static_assert( sizeof...(args) == sizeof...(T), "Number of tasks must be equal to N" );
@@ -108,7 +105,7 @@ class Scheduler
         std::array< std::size_t, sizeof...(StackSize) > stack_sizes = {StackSize...};
 
         sp_vals_[0] = &(stack_[SYSTEM_STACK_SIZE-1]);
-        for( std::size_t i = 0; i < N_; i ++ )
+        for( std::size_t i = 0; i < sizeof...(StackSize); i ++ )
         {
             if( i == 0 )
             {
@@ -124,7 +121,7 @@ class Scheduler
             wait_counters_[i] = 0;
         }
 
-        for( std::size_t i = 0; i < N_+1; i ++ )
+        for( std::size_t i = 0; i < sizeof...(StackSize)+1; i ++ )
         {
             tasks_initialized_[i] = false;
         }
@@ -163,7 +160,7 @@ class Scheduler
             if( tasks_initialized_[current_task_number_] == false )
             {
                 tasks_initialized_[current_task_number_] = true;
-                if( current_task_number_ < N_ )
+                if( current_task_number_ < sizeof...(StackSize) )
                 {
                     current_task_number_ ++;
                 }   
@@ -185,7 +182,7 @@ class Scheduler
         else  // 全タスク初期化後
         {
             // タスクが優先度昇順にソートされていることを前提とする
-            for( std::size_t i = 0; i < N_; i ++ )
+            for( std::size_t i = 0; i < sizeof...(StackSize); i ++ )
             {
                 if( wait_counters_[i] == 0 )
                 {
