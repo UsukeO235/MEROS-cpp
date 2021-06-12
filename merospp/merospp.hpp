@@ -98,10 +98,6 @@ class Scheduler
 
         //expand( task_ptrs_.data(), args... );  // 再帰的にパラメータを展開する
         
-        // タスクを優先度昇順にソートする
-        // コードサイズがでかすぎる
-        std::sort( task_ptrs_.begin(), task_ptrs_.end(), [](Task* a, Task* b){return a->get_priority() < b->get_priority();} );
-
         std::array< std::size_t, sizeof...(StackSize) > stack_sizes = {StackSize...};
 
         sp_vals_[0] = &(stack_[SYSTEM_STACK_SIZE-1]);
@@ -181,18 +177,30 @@ class Scheduler
         }
         else  // 全タスク初期化後
         {
+            volatile std::size_t next_task_number = 0;
             // タスクが優先度昇順にソートされていることを前提とする
             for( std::size_t i = 0; i < sizeof...(StackSize); i ++ )
             {
                 if( wait_counters_[i] == 0 )
                 {
-                    current_task_number_ = i+1;  // タスク切り替え
+                    if( next_task_number == 0 )
+                    {
+                        next_task_number = i+1;
+                    }
+                    else
+                    {
+                        if( task_ptrs_[i]->get_priority() > task_ptrs_[next_task_number-1]->get_priority() )
+                        {
+                            next_task_number = i+1;
+                        }
+                    }
                 }
                 else
                 {
                     wait_counters_[i] --;
                 }
             }
+            current_task_number_ = next_task_number;  // タスク切り替え
         }
 
         disable_interrupt();
