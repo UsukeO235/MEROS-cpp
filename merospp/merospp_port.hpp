@@ -1,6 +1,7 @@
 #ifndef __MEROSPP_PORT_H
 #define __MEROSPP_PORT_H
 
+#include <cstdint>
 #include "stm32f3xx_hal.h"
 
 namespace merospp
