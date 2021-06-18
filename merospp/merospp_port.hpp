@@ -31,6 +31,27 @@ inline void restore_stack_pointer( uint32_t** const stack_pointer )
     asm volatile( "ldr r13, [r0]\n\t" );
 }
 
+inline bool try_lock( uint32_t* p )
+{
+    return __sync_bool_compare_and_swap( p, 0, 1 );
+}
+/*
+inline bool try_lock( uint32_t* p )
+{
+    disable_interrupt();
+    return true;
+}
+*/
+inline void release_lock( uint32_t* p )
+{
+    *p = 0;
+}
+/*
+inline void release_lock( uint32_t* p )
+{
+    enable_interrupt();
+}
+*/
 }
 
 #endif
