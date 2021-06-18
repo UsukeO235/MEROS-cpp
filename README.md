@@ -80,5 +80,5 @@ Minimal Embedded Real-time OS written in C++
     
     Please refer to CMakeLists_sample.txt for recommended compile options.
 
-## Acknowledgments
+## Acknowledgements
 - [CMake example project for STM32 and CubeMX](https://github.com/idt12312/STM32_CMake)
