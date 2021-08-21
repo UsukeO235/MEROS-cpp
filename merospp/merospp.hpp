@@ -114,7 +114,7 @@ class Scheduler
                 sp_vals_[i+1] = sp_vals_[i] + (stack_sizes[i] - 1);
             }
 
-            wait_counters_[i] = 0;
+            wait_counters_[i] = 1;
         }
 
         for( std::size_t i = 0; i < sizeof...(StackSize)+1; i ++ )
@@ -181,6 +181,11 @@ class Scheduler
             // タスクが優先度昇順にソートされていることを前提とする
             for( std::size_t i = 0; i < sizeof...(StackSize); i ++ )
             {
+                if( wait_counters_[i] != 0 )
+                {
+                    wait_counters_[i] --;
+                }
+
                 if( wait_counters_[i] == 0 )
                 {
                     if( next_task_number == 0 )
@@ -194,10 +199,6 @@ class Scheduler
                             next_task_number = i+1;
                         }
                     }
-                }
-                else
-                {
-                    wait_counters_[i] --;
                 }
             }
             current_task_number_ = next_task_number;  // タスク切り替え
