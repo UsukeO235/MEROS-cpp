@@ -53,7 +53,7 @@ Minimal Embedded Real-time OS written in C++
     auto& scheduler = merospp::Scheduler< 64, 128 >::get_instance( t1, t2 );
     ```
 
-1. Place schedule() inside an interrupt handler that is called every 1 ms
+1. Place schedule() inside an interrupt handler that is called periodically
 
     ```cpp
     void timer_callback()  // "HAL_TIM_PeriodElapsedCallback" for STM32
