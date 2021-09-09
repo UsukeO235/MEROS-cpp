@@ -70,6 +70,8 @@ class Scheduler
 
     std::array< uint32_t, sizeof...(StackSize) > wait_counters_;
 
+    std::array< bool, sizeof...(StackSize) > callback_executing_;
+
     /*
     template< typename T >
     constexpr T* get_pointer( T& d )
@@ -115,6 +117,7 @@ class Scheduler
             }
 
             wait_counters_[i] = 1;
+            callback_executing_[i] = false;
         }
 
         for( std::size_t i = 0; i < sizeof...(StackSize)+1; i ++ )
@@ -186,7 +189,7 @@ class Scheduler
                     wait_counters_[i] --;
                 }
 
-                if( wait_counters_[i] == 0 )
+                if(( wait_counters_[i] == 0 ) || ( callback_executing_[i] == true ))
                 {
                     if( next_task_number == 0 )
                     {
@@ -201,7 +204,11 @@ class Scheduler
                     }
                 }
             }
-            current_task_number_ = next_task_number;  // タスク切り替え
+
+            if( callback_executing_[current_task_number_-1] == false )
+            {
+                current_task_number_ = next_task_number;  // タスク切り替え
+            }
         }
 
         disable_interrupt();
@@ -221,10 +228,14 @@ class Scheduler
         while( tasks_initialized_[current_task_number_] == false );
         while( true )
         {
+            callback_executing_[current_task_number_-1] = true;
             task_ptrs_[current_task_number_-1]->call();
+            callback_executing_[current_task_number_-1] = false;
+
             // wait
-            wait_counters_[current_task_number_-1] = task_ptrs_[current_task_number_-1]->get_period();
+            
             while( wait_counters_[current_task_number_-1] != 0 );
+            wait_counters_[current_task_number_-1] = task_ptrs_[current_task_number_-1]->get_period();
         }
     }
 };
