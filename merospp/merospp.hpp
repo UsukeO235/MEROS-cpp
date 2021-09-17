@@ -7,12 +7,20 @@
 namespace merospp
 {
 
+template< std::size_t... StackSize >
 class Task
 {
     private:
     const uint32_t PRIORITY;
     const uint32_t PERIOD;
     void (*const callback_)(void);
+
+    bool initialized_;
+    bool callback_executing_;
+    uint32_t* stack_pointer_;
+    uint32_t wait_counter_;
+
+    std::array< uint32_t, sizeof...(StackSize) > stack_;
 
     public:
     Task() = delete;
