@@ -6,7 +6,8 @@
 
 namespace merospp
 {
-constexpr std::size_t MAXIMUM_TOTAL_STACK_SIZE = 1024;
+constexpr std::size_t MAXIMUM_NUMBER_OF_TASKS = 8;
+constexpr std::size_t TOTAL_STACK_SIZE = 256;
 constexpr std::size_t SYSTEM_STACK_SIZE = 48;
 
 inline void disable_interrupt()
