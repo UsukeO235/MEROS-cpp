@@ -1,0 +1,11 @@
+/build/
+/Drivers/
+/Inc/
+/Src/
+/CMakeLists.txt
+/Makefile
+/.vscode/
+.mxproject
+*.s
+*.ld
+*.ioc
